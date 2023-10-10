@@ -8,11 +8,12 @@ app.use(express.json());
 const kkRouter = require('./routes/kkRouter');
 const ktpRouter = require('./routes/ktpRouter');
 const detailRouter = require('./routes/detailRouter');
-
+const dtransportrouter = require('./routes/transport');
 // Gunakan router sesuai dengan path yang diinginkan
 app.use('/kk', kkRouter);
 app.use('/ktp', ktpRouter);
 app.use('/detail', detailRouter);
+app.use('/transport', dtransportrouter);
 
 const mhsRouter = require('./routes/mahasiswa');
 app.use('/api/mhs', mhsRouter);

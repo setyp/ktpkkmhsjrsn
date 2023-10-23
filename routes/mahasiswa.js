@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
 })
 
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jng' || file.mimetype === 'application/pdf') {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'application/pdf') {
         cb(null, true);
     } else {
         cb(new Error('Jenis file tidak diizinkan'), false);
@@ -29,9 +29,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({storage: storage, fileFilter: fileFilter})
 
 router.get('/mahasiswa', function (req, res){
-    connection.query('SELECT m.id_m, m.nama, m.nrp, j.nama_jurusan ' +
-                    'FROM mahasiswa m ' +
-                    'JOIN jurusan j ON m.id_jurusan = j.id_j', function(err, rows){
+    connection.query('SELECT a.nama, b.nama_jurusan AS jurusan, a.gambar, a.swa_foto FROM mahasiswa a JOIN jurusan b ON b.id_j = a.id_jurusan ORDER BY a.id_m DESC;', function(err, rows){
         if(err){
             return res.status(500).json({
                 status: false,
@@ -47,7 +45,7 @@ router.get('/mahasiswa', function (req, res){
     });
 });
 
-router.post('/',upload.fields([{ name: 'gambar', maxCount: 1 }, { name: 'swa_foto', maxCount: 1 }]),[
+router.post('/upload',upload.fields([{ name: 'gambar', maxCount: 1 }, { name: 'swa_foto', maxCount: 1 }]),[
     //validation
     body('nama').notEmpty(),
     body('nrp').notEmpty(),

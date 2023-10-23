@@ -2,7 +2,15 @@ const express = require('express');
 const app = express();
 const port = 3000;
 const cors = require('cors');
-app.use(express.json());
+
+app.use(cors())
+
+const path = require('path')
+app.use('/static', express.static(path.join(__dirname, 'public/images')))
+
+const bodyPs = require('body-parser'); 
+app.use(bodyPs.urlencoded({ extended: false}));
+app.use(bodyPs.json());
 
 // Impor router
 const kkRouter = require('./routes/kkRouter');
@@ -16,10 +24,10 @@ app.use('/detail', detailRouter);
 app.use('/transport', dtransportrouter);
 
 const mhsRouter = require('./routes/mahasiswa');
-app.use('/api/mhs', mhsRouter);
+app.use(mhsRouter);
 
 const jurusanRouter = require('./routes/jurusan');
-app.use('/api/jurusan', jurusanRouter);
+app.use( jurusanRouter);
 
 app.listen(port, () => {
   console.log(`Server berjalan di port ${port}`);

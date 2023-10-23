@@ -5,24 +5,25 @@ const {body, validationResult } = require('express-validator');
 // import database
 const connection = require('../config/db');
 
-router.get('/', function (req, res){
-    connection.query('select * from jurusan order by id_j desc', function(err, rows){
-        if(err){
+router.get('/', function (req, res) {
+    connection.query('SELECT * FROM jurusan ORDER BY id_j DESC', function (err, rows) {
+        if (err) {
+            console.error('Database error:', err);
             return res.status(500).json({
                 status: false,
-                message: 'Server Failed',
-            })
-        }else{
+                message: 'Server Error',
+            });
+        } else {
+            console.log('Query result:', rows); // Log the query result for debugging
             return res.status(200).json({
-                status:true,
+                status: true,
                 message: 'Data Jurusan',
-                data: rows
-            })
+                data: rows,
+            });
         }
-    })
+    });
 });
-
-router.post('/store', [
+router.post('/jurusan', [
     //validation
     body('nama_jurusan').notEmpty(),
 ],(req, res) => {
@@ -50,33 +51,31 @@ router.post('/store', [
         }
     })
 })
-
-router.get('/(:id)', function (req, res) {
+router.get('/jurusan/:id', function (req, res) {
     let id = req.params.id;
-    connection.query(`select * from jurusan where id_j = ${id}`, function (err, rows) {
-        if(err){
+    connection.query(`SELECT * FROM jurusan WHERE id_j = ${id}`, function (err, rows) {
+        if (err) {
             return res.status(500).json({
                 status: false,
                 message: 'Server Error',
-            })
+            });
         }
-        if(rows.length <=0){
+        if (rows.length <= 0) {
             return res.status(404).json({
                 status: false,
                 message: 'Not Found',
-            })
-        }
-        else{
+            });
+        } else {
             return res.status(200).json({
                 status: true,
                 message: 'Data Jurusan',
                 data: rows[0]
-            })
+            });
         }
-    })
-})
+    });
+});
 
-router.patch('/update/:id', [
+router.patch('/jurusan/:id', [
     body('nama_jurusan').notEmpty()
 ], (req, res) => {
     const error = validationResult(req);
@@ -104,7 +103,7 @@ router.patch('/update/:id', [
     })
 })
 
-router.delete('/delete/(:id)', function(req, res){
+router.delete('/jurusan/(:id)', function(req, res){
     let id = req.params.id;
     connection.query(`delete from jurusan where id_j = ${id}`, function (err, rows) {
         if(err){

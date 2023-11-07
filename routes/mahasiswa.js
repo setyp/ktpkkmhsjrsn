@@ -18,15 +18,74 @@ const storage = multer.diskStorage({
     }
 })
 
+const authenticateToken = require('../routes/auth/midleware/authenticateToken')
+
+router.get('/', authenticateToken, function (req, res){
+    connection.query('select a.id_m id, a.nama, b.nama_jurusan as jurusan, a.id_jurusan, a.gambar, a.swa_foto, a.nrp ' + 
+    ' from mahasiswa a join jurusan b ' + 
+    ' on b.id_j=a.id_jurusan order by a.id_m desc ', function(err, rows){
+        if(err){
+            return res.status(500).json({
+                status: false,
+                message: 'Server Failed',
+            })
+        }else{
+            return res.status(200).json({
+                status:true,
+                message: 'Data Mahasiswa',
+                data: rows
+            })
+        }
+    })
+});
+
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'application/pdf') {
-        cb(null, true);
-    } else {
-        cb(new Error('Jenis file tidak diizinkan'), false);
-    }
+  // Mengecek jenis file yang diizinkan (misalnya, hanya gambar JPEG atau PNG)
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+      cb(null, true); // Izinkan file
+  } else if (file.mimetype === 'application/pdf') {
+      cb(null, true); // Izinkan file PDF
+  } else {
+      cb(new Error('Jenis file tidak diizinkan'), false); // Tolak file
+  }
 };
 
 const upload = multer({storage: storage, fileFilter: fileFilter})
+
+router.post('/store', authenticateToken, upload.fields([{ name: 'gambar', maxCount: 1 }, { name: 'swa_foto', maxCount: 1 }]) , [
+  //validation
+  body('nama').notEmpty(),
+  body('nrp').notEmpty(),
+  body('id_jurusan').notEmpty()
+],(req, res) => {
+  const error = validationResult(req);
+  if(!error.isEmpty()){
+      return res.status(422).json({
+          error: error.array()
+      });
+  }
+  let Data = {
+      nama: req.body.nama,
+      nrp: req.body.nrp,
+      id_jurusan: req.body.id_jurusan,
+      gambar: req.files.gambar[0].filename, 
+      swa_foto: req.files.swa_foto[0].filename 
+  }
+  connection.query('insert into mahasiswa set ?', Data, function(err, rows){
+      if(err){
+          return res.status(500).json({
+              status: false,
+              message: 'Server Error',
+          })
+      }else{
+          return res.status(201).json({
+              status: true,
+              message: 'Success..!',
+              data: rows[0]
+          })
+      }
+  })
+})
 
 router.get('/mahasiswa', function (req, res){
     connection.query('SELECT a.id_m,a.nama,a.nrp, b.nama_jurusan AS jurusan, a.gambar, a.swa_foto FROM mahasiswa a JOIN jurusan b ON b.id_j = a.id_jurusan ORDER BY a.id_m DESC;', function(err, rows){
@@ -44,42 +103,6 @@ router.get('/mahasiswa', function (req, res){
         }
     });
 });
-
-router.post('/upload',upload.fields([{ name: 'gambar', maxCount: 1 }, { name: 'swa_foto', maxCount: 1 }]),[
-    //validation
-    body('nama').notEmpty(),
-    body('nrp').notEmpty(),
-    body('id_jurusan').notEmpty()
-],(req, res) => {
-    const error = validationResult(req);
-    if(!error.isEmpty()){
-        return res.status(422).json({
-            error: error.array()
-        });
-    }
-    let Data = {
-        nama: req.body.nama,
-        nrp: req.body.nrp,
-        id_jurusan: req.body.id_jurusan,
-        gambar: req.files.gambar[0].filename, 
-        swa_foto: req.files.swa_foto[0].filename 
-
-    }
-    connection.query('insert into mahasiswa set ?', Data, function(err, rows){
-        if(err){
-            return res.status(500).json({
-                status: false,
-                message: 'Server Error',
-            })
-        }else{
-            return res.status(201).json({
-                status: true,
-                message: 'Success..!',
-                data: rows[0]
-            })
-        }
-    })
-})
 
 router.get('/:id', function (req, res) {
     let id = req.params.id;

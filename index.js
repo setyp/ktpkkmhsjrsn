@@ -29,6 +29,9 @@ app.use(mhsRouter);
 const jurusanRouter = require('./routes/jurusan');
 app.use( jurusanRouter);
 
+const auth = require('./routes/auth/auth');
+app.use('/api/auth', auth);
+
 app.listen(port, () => {
   console.log(`Server berjalan di port ${port}`);
 });
